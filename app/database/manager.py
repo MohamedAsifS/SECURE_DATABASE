@@ -11,8 +11,8 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.credentials.provider import EnvironmentCredentialProvider
-from app.model.database import DatabaseConnectionRecord, DatabaseCredentialRecord
 from app.database.validation import SQLReadOnlyValidator
+from app.model.database import DatabaseConnectionRecord, DatabaseCredentialRecord
 
 
 @dataclass(frozen=True)

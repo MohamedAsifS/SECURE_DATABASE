@@ -8,8 +8,8 @@ from fastmcp import FastMCP
 from app.auth.authentication import get_authentication_service
 from app.config import get_settings
 from app.database.connection import control_engine
-from app.model.database import Base
 from app.mcp.tools import register_tools
+from app.model.database import Base
 
 settings = get_settings()
 

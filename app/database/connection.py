@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import get_settings
 
-
 settings = get_settings()
 control_engine = create_engine(settings.supabase_database_url, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=control_engine, class_=Session, expire_on_commit=False)

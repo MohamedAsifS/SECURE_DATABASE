@@ -4,6 +4,7 @@ from fastmcp.server.auth import JWTVerifier, RemoteAuthProvider
 
 from app.config import Settings, get_settings
 
+
 class AuthenticationService:
     def __init__(self, settings: Settings):
         jwks_uri = f"{settings.auth_issuer.rstrip('/')}/.well-known/jwks.json"
