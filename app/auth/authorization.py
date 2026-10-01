@@ -1,16 +1,14 @@
 from fastapi import HTTPException, status
 from fastmcp.server.dependencies import get_access_token
 
-from app.auth.authentication import AuthenticatedUser
-
 SCOPE_SCHEMA_READ = "database:schema:read"
 SCOPE_DATA_READ = "database:data:read"
 
 
 class ScopeAuthorizer:
     @staticmethod
-    def require_scope(user: AuthenticatedUser, required_scope: str) -> None:
-        if required_scope not in user.scopes:
+    def require_scope(user_scopes: set[str], required_scope: str) -> None:
+        if required_scope not in user_scopes:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Missing required scope: {required_scope}",

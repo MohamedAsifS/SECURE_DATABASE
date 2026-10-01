@@ -14,19 +14,15 @@ Production-minded V1 read-only Database MCP Server built with Python, FastMCP, F
   - `get_relationships`
 - Read-only query tool:
   - `execute_read_query`
-- Authenticated database configuration API:
-  - `POST /database`
-  - `GET /database`
-  - `POST /database/test`
-  - `DELETE /database`
 - Query guardrails:
   - `MAX_QUERY_ROWS`
   - `QUERY_TIMEOUT_SECONDS`
   - `MAX_RESULT_SIZE_MB`
+- SQLAlchemy models organized in `app/model`
 
 ## Security Notes
 
-- Credentials are never returned by API or MCP tools.
+- Credentials are never returned by MCP tools.
 - Passwords are handled through a credential reference abstraction.
 - SQL write/admin operations are blocked by SQL parsing validation.
 - Use a read-only PostgreSQL user (for example: `ai_readonly`) with only `SELECT` permissions.

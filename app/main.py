@@ -5,10 +5,10 @@ import logging
 from fastapi import FastAPI
 from fastmcp import FastMCP
 
-from app.api.database import router as database_router
-from app.auth.authentication import AuthenticationService
+from app.auth.authentication import get_authentication_service
 from app.config import get_settings
-from app.database.connection import Base, control_engine
+from app.database.connection import control_engine
+from app.model.database import Base
 from app.mcp.tools import register_tools
 
 settings = get_settings()
@@ -20,7 +20,7 @@ logging.basicConfig(
 
 Base.metadata.create_all(bind=control_engine)
 
-auth_service = AuthenticationService(settings)
+auth_service = get_authentication_service()
 mcp_server = FastMCP(
     name="Secure Database MCP",
     instructions="Read-only PostgreSQL tools with strict authentication and scope checks.",
@@ -29,7 +29,6 @@ mcp_server = FastMCP(
 register_tools(mcp_server)
 
 app = FastAPI(title="Secure Database MCP")
-app.include_router(database_router)
 app.mount("/mcp", mcp_server.http_app(path="/"))
 
 

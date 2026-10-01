@@ -2,8 +2,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.database.connection import Base, DatabaseConnectionRecord
 from app.database.manager import DatabaseConnectionManager
+from app.model.database import Base, DatabaseConnectionRecord
 
 
 @pytest.fixture
