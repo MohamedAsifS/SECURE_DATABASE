@@ -1,0 +1,41 @@
+[project]
+name = "database-mcp"
+version = "0.1.0"
+description = "Read-only PostgreSQL MCP server"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.116.1",
+  "fastmcp>=2.14.7",
+  "sqlalchemy>=2.0.43",
+  "psycopg[binary]>=3.2.10",
+  "pydantic>=2.11.9",
+  "pydantic-settings>=2.11.0",
+  "python-dotenv>=1.1.1",
+  "uvicorn[standard]>=0.35.0",
+  "sqlglot>=27.14.0",
+  "cryptography>=46.0.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.4.2",
+  "pytest-asyncio>=1.2.0",
+  "ruff>=0.13.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
