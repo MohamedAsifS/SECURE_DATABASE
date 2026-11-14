@@ -5,9 +5,11 @@ import logging
 from fastapi import FastAPI
 from fastmcp import FastMCP
 
+from app.api.database import router as database_router
 from app.auth.authentication import get_authentication_service
 from app.config import get_settings
 from app.database.connection import control_engine
+from app.database.manager import DatabaseConnectionManager
 from app.mcp.tools import register_tools
 from app.model.database import Base
 
@@ -29,9 +31,16 @@ mcp_server = FastMCP(
 register_tools(mcp_server)
 
 app = FastAPI(title="Secure Database MCP")
+app.include_router(database_router)
 app.mount("/mcp", mcp_server.http_app(path="/"))
 
 
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.on_event("shutdown")
+def on_shutdown() -> None:
+    DatabaseConnectionManager.dispose_all_cached_engines()
+    control_engine.dispose()

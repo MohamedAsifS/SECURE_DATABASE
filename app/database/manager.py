@@ -63,6 +63,14 @@ class DatabaseConnectionManager:
             cached.engine.dispose()
 
     @classmethod
+    def dispose_all_cached_engines(cls) -> None:
+        with cls._engine_cache_lock:
+            cached_engines = list(cls._engine_cache.values())
+            cls._engine_cache.clear()
+        for cached in cached_engines:
+            cached.engine.dispose()
+
+    @classmethod
     def _get_cached_engine(
         cls, user_id: str, fingerprint: tuple[str, int, str, str, str, bool]
     ) -> Engine | None:
@@ -99,8 +107,7 @@ class DatabaseConnectionManager:
         return record
 
     def _store_credential(self, credential_reference: str, password: str) -> None:
-        self.credential_provider.store(credential_reference, password)
-        encrypted = self.credential_provider.retrieve(credential_reference)
+        encrypted = self.credential_provider.store(credential_reference, password)
         row = self.session.get(DatabaseCredentialRecord, credential_reference)
         if row is None:
             row = DatabaseCredentialRecord(
@@ -234,9 +241,13 @@ class DatabaseConnectionManager:
         started = time.perf_counter()
         engine = self.get_connection(user_id)
         try:
-            with engine.connect() as connection:
+            with engine.begin() as connection:
+                connection.execute(text("SET TRANSACTION READ ONLY"))
                 connection.execute(
-                    text(f"SET statement_timeout = {self.settings.query_timeout_seconds * 1000}")
+                    text(
+                        "SET LOCAL statement_timeout = "
+                        f"{self.settings.query_timeout_seconds * 1000}"
+                    )
                 )
                 result = connection.execute(text(limited_sql))
                 columns = list(result.keys())

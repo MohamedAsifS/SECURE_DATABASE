@@ -13,4 +13,4 @@ def test_health_endpoint():
 
 def test_database_api_not_exposed():
     response = client.get("/database")
-    assert response.status_code == 404
+    assert response.status_code == 401

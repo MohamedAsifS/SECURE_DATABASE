@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import Settings
 from app.database.manager import DatabaseConnectionManager
-from app.model.database import Base, DatabaseConnectionRecord
+from app.model.database import Base, DatabaseConnectionRecord, DatabaseCredentialRecord
 
 
 @pytest.fixture
@@ -193,10 +193,56 @@ def test_execute_query_enforces_size_limit_during_fetch(session, monkeypatch):
             return False
 
     class FakeEngine:
-        def connect(self):
+        def begin(self):
             return FakeConnection()
 
     monkeypatch.setattr(manager, "get_connection", lambda _: FakeEngine())
 
     with pytest.raises(ValueError, match="Result set too large"):
         manager.execute_query("user_a", "SELECT payload FROM table_name")
+
+
+def test_execute_query_sets_transaction_read_only(session, monkeypatch):
+    settings = Settings(max_result_size_mb=5, max_query_rows=10, query_timeout_seconds=5)
+    manager = DatabaseConnectionManager(session, settings=settings)
+    executed_sql = []
+
+    class FakeResult:
+        def keys(self):
+            return ["id"]
+
+        def fetchmany(self, _size):
+            return []
+
+    class FakeConnection:
+        def execute(self, statement):
+            executed_sql.append(str(statement))
+            if "SELECT * FROM" in str(statement):
+                return FakeResult()
+            return None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    class FakeEngine:
+        def begin(self):
+            return FakeConnection()
+
+    monkeypatch.setattr(manager, "get_connection", lambda _: FakeEngine())
+
+    manager.execute_query("user_a", "SELECT id FROM table_name")
+    assert any("SET TRANSACTION READ ONLY" in sql for sql in executed_sql)
+
+
+def test_store_credential_persists_encrypted_value(session):
+    manager = DatabaseConnectionManager(session)
+    manager._store_credential("DB_PASSWORD_sample", "plain-password")
+
+    stored = session.get(DatabaseCredentialRecord, "DB_PASSWORD_sample")
+    assert stored is not None
+    assert stored.encrypted_password != "plain-password"
+    assert manager.credential_provider.retrieve("DB_PASSWORD_sample") == "plain-password"
+    manager.credential_provider.delete("DB_PASSWORD_sample")

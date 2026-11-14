@@ -25,3 +25,8 @@ def test_mutating_queries_rejected(sql):
 def test_select_allowed():
     result = SQLReadOnlyValidator.validate_read_only("SELECT id, name FROM users LIMIT 10")
     assert "SELECT" in result.normalized_sql
+
+
+def test_multiple_statements_rejected():
+    with pytest.raises(ValueError):
+        SQLReadOnlyValidator.validate_read_only("SELECT 1; SELECT 2;")

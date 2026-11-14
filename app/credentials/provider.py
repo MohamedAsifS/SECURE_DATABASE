@@ -16,7 +16,7 @@ def _fernet_key_from_secret(secret: str) -> bytes:
 
 class CredentialProvider(ABC):
     @abstractmethod
-    def store(self, credential_reference: str, secret_value: str) -> None: ...
+    def store(self, credential_reference: str, secret_value: str) -> str: ...
 
     @abstractmethod
     def retrieve(self, credential_reference: str) -> str: ...
@@ -29,9 +29,10 @@ class EnvironmentCredentialProvider(CredentialProvider):
     def __init__(self, encryption_key: str):
         self.cipher = Fernet(_fernet_key_from_secret(encryption_key))
 
-    def store(self, credential_reference: str, secret_value: str) -> None:
+    def store(self, credential_reference: str, secret_value: str) -> str:
         encrypted = self.cipher.encrypt(secret_value.encode("utf-8")).decode("utf-8")
         os.environ[credential_reference] = encrypted
+        return encrypted
 
     def retrieve(self, credential_reference: str) -> str:
         encrypted = os.getenv(credential_reference)

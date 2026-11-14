@@ -19,6 +19,23 @@ MUTATING_STATEMENTS = {
     exp.Merge,
 }
 
+for expression_name in (
+    "Set",
+    "Call",
+    "Execute",
+    "Analyze",
+    "Vacuum",
+    "Copy",
+    "Pragma",
+    "Transaction",
+    "Commit",
+    "Rollback",
+    "Lock",
+):
+    expression_type = getattr(exp, expression_name, None)
+    if expression_type is not None:
+        MUTATING_STATEMENTS.add(expression_type)
+
 
 @dataclass(frozen=True)
 class QueryValidationResult:
@@ -28,7 +45,10 @@ class QueryValidationResult:
 class SQLReadOnlyValidator:
     @staticmethod
     def validate_read_only(sql: str) -> QueryValidationResult:
-        parsed = sqlglot.parse_one(sql, read="postgres")
+        parsed_statements = sqlglot.parse(sql, read="postgres")
+        if len(parsed_statements) != 1:
+            raise ValueError("Only one read-only SELECT statement is allowed")
+        parsed = parsed_statements[0]
 
         read_only_roots = (
             exp.Select,
